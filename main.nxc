@@ -1,0 +1,19 @@
+#define SCREEN_WIDTH  100   //might be needed someday
+#define SCREEN_HEIGHT 64
+
+task main()
+{
+SetSensorType(OUT_B, SENSOR_TYPE_ROTATION); //Port B, x-axis
+SetSensorType(OUT_C, SENSOR_TYPE_ROTATION); //Port C, y-axis
+
+ClearSensor(OUT_B); ClearSensor(OUT_C);
+
+int x1, y1, x2, y2;
+ while(true)
+ {
+  x1=MotorTachoCount(OUT_B); y1=MotorTachoCount(OUT_C); // get line start
+  x2=MotorTachoCount(OUT_B); y2=MotorTachoCount(OUT_C); //get line end
+//  NumOut (35, LCD_LINE2, x2);   NumOut (60, LCD_LINE2, y2); //display values
+  LineOut(x1/10, y1/-10,   x1/10, y1/-10);
+ }
+}
