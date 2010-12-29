@@ -11,10 +11,9 @@ ClearSensor(OUT_B); ClearSensor(OUT_C);
 int x1, y1, x2, y2;
  while(true)
  {
-  x1=MotorTachoCount(OUT_B); y1=MotorTachoCount(OUT_C);
-  x2=MotorTachoCount(OUT_B); y2=MotorTachoCount(OUT_C);
-  NumOut (35, LCD_LINE2, x2);   NumOut (60, LCD_LINE2, y2);
-  LineOut(x1/10, y1/-10,
-   x1/10, y1/-10);
+  x1=MotorTachoCount(OUT_B); y1=MotorTachoCount(OUT_C); // get line start
+  x2=MotorTachoCount(OUT_B); y2=MotorTachoCount(OUT_C); //get line end
+//  NumOut (35, LCD_LINE2, x2);   NumOut (60, LCD_LINE2, y2); //display values
+  LineOut(x1/10, y1/-10,   x1/10, y1/-10);
  }
 }
