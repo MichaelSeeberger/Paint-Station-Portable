@@ -1,5 +1,10 @@
-#define SCREEN_WIDTH  100   //might be needed someday
-#define SCREEN_HEIGHT 64
+//How the hell do I integrate other files?
+//#include "main.h"
+
+//byte set[][]; //saves the set/clear setting of a pixel
+              //byte array is useful for built-in drawing functions
+
+void openMenu();
 
 task main()
 {
@@ -11,9 +16,33 @@ ClearSensor(OUT_B); ClearSensor(OUT_C);
 int x1, y1, x2, y2;
  while(true)
  {
-  x1=MotorTachoCount(OUT_B); y1=MotorTachoCount(OUT_C); // get line start
-  x2=MotorTachoCount(OUT_B); y2=MotorTachoCount(OUT_C); //get line end
-//  NumOut (35, LCD_LINE2, x2);   NumOut (60, LCD_LINE2, y2); //display values
-  LineOut(x1/10, y1/-10,   x1/10, y1/-10);
+ if(ButtonPressed(BTNCENTER,true)){
+   openMenu();
+   //TextOut(0, LCD_LINE2, "Hello!",DRAW_OPT_NORMAL);
  }
+ 
+  x1=MotorTachoCount(OUT_B); // get line start
+  y1=MotorTachoCount(OUT_C);
+  PointOut(x1/10, y1/-10);
+ }
+}
+
+//if possible, this should be in a separate file
+void openMenu()
+{
+  //save image data
+  //create graphics
+  //handle menu navigation
+  //clear screen
+  //restore image data
+}
+
+sub saveImage()
+{
+//write image data to array
+}
+
+sub restoreImage()
+{
+//load image data from array
 }
