@@ -1,48 +1,97 @@
-//How the hell do I integrate other files?
-//#include "main.h"
-
-//byte set[][]; //saves the set/clear setting of a pixel
-              //byte array is useful for built-in drawing functions
-
 void openMenu();
+sub brush(int x, int y, int radius);
+sub saveImage();
+sub restoreImage();
+
+bool pixels[64][100];
 
 task main()
 {
-SetSensorType(OUT_B, SENSOR_TYPE_ROTATION); //Port B, x-axis
-SetSensorType(OUT_C, SENSOR_TYPE_ROTATION); //Port C, y-axis
+ //init settings array
+ bool temp[64];
+ ArrayInit(temp,FALSE,64);   //set all to false
+ ArrayInit(pixels,temp,100);
 
-ClearSensor(OUT_B); ClearSensor(OUT_C);
+ //init sensors
+ SetSensorType(OUT_B, SENSOR_TYPE_ROTATION); //Port B, x-axis
+ SetSensorType(OUT_C, SENSOR_TYPE_ROTATION); //Port C, y-axis
+ ClearSensor(OUT_B); ClearSensor(OUT_C);
 
-int x1, y1, x2, y2;
- while(true)
- {
- if(ButtonPressed(BTNCENTER,true)){
-   openMenu();
-   //TextOut(0, LCD_LINE2, "Hello!",DRAW_OPT_NORMAL);
- }
+ int x, y;
  
-  x1=MotorTachoCount(OUT_B); // get line start
-  y1=MotorTachoCount(OUT_C);
-  PointOut(x1/10, y1/-10);
+ while(TRUE)
+  {
+   if(ButtonPressed(BTNCENTER,true)){
+    //openMenu();
+    //TextOut(0, LCD_LINE2, "Hello!",DRAW_OPT_NORMAL);
+   }
+
+   x=MotorTachoCount(OUT_B); // get line start
+   y=MotorTachoCount(OUT_C);
+ 
+   x = x/10; y = y/-10;  //scale the input to screen
+ 
+   if(x>99) {x=99;} else if (x<0) x = 0;  //make sure to stay within
+   if(y>63) {y=63;} else if (y<0) y = 0;  //boundaries of the array
+ 
+   brush(x,y,0.5);  //draw the point, radius under 1 makes 1 pixel line
+ 
+   //i++; //testing only
+   //if (i>10000){
+    //restoreImage();
+    //TextOut(0, LCD_LINE4, "Image restored");
+    //i=0;
+    //Wait(1000);
+   //}
+ }
+}
+
+sub brush(int x, int y, int radius){
+ pixels[x][y]=TRUE; //for some reason, this assignment doesn't work
+                    //despite the corrected values
+ TextOut(0, LCD_LINE1, "X=");  //debug info
+ TextOut(0, LCD_LINE2, "Y=");
+ NumOut(10, LCD_LINE1, x);
+ NumOut(10, LCD_LINE2, y);
+ CircleOut(x, y, radius, DRAW_OPT_NORMAL);
+ if (pixels[x][y]==TRUE){  //debug
+   TextOut(0, LCD_LINE3, "true");
+ }
+ else {
+   TextOut(0, LCD_LINE3, "false");
  }
 }
 
 //if possible, this should be in a separate file
 void openMenu()
 {
-  //save image data
   //create graphics
   //handle menu navigation
   //clear screen
   //restore image data
 }
 
-sub saveImage()
-{
-//write image data to array
-}
+//write image data to file
+sub saveImage(){}
 
 sub restoreImage()
 {
 //load image data from array
+ ClearScreen();
+ int i,j;
+    TextOut(0, LCD_LINE1, "X=");  //debug info
+    TextOut(0, LCD_LINE2, "Y=");
+    
+ for(i = 0; i<100;i++){
+  for(j = 0; j<64;j++){
+    if(pixels[i][j]==TRUE){
+     PointOut(i,j,DRAW_OPT_NORMAL);
+      TextOut(10, LCD_LINE1, "true");  //debug info
+      TextOut(10, LCD_LINE2, "true");
+    } else {
+      TextOut(10, LCD_LINE1, "false");
+      TextOut(10, LCD_LINE2, "false");
+    }
+  }
+ }
 }
