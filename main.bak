@@ -96,7 +96,9 @@ sub navi(){
    }
    
    menu[0]=item[pos]; //update position
-   GraphicOutEx(0, 0, "menu.ric", menu); //update menu
+   ClearScreen();
+   GraphicOutEx(0, 0, "menu.ric", menu, DRAW_OPT_CLEAR_PIXELS); //update menu
+   Wait(200);  //wait, otherwise it's difficult to hit the menu items :)
  }
 }
 
