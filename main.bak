@@ -1,31 +1,41 @@
+#download "menu.ric"
+
+#define X (100)
+#define Y (64)
+
+//definition of menu cursor positions
+#define menu1 58
+#define menu2 49
+#define menu3 41
+#define menu4 33
+#define menu5 25
+#define menu6 17
+#define menu7 9
+
+
 void openMenu();
 sub brush(int x, int y, int radius);
+sub navi();
 sub saveImage();
 sub restoreImage();
 
-bool pixels[64][100];
+bool pixels[X][Y];     //bookkeeping of coloured pixels, init values all false
+int item[] = {menu1, menu2, menu3, menu4, menu5, menu6, menu7};
+int menu[] = {menu1};// menu cursor position, MUST be array, init value menu1
 
 task main()
 {
- //init settings array
- bool temp[64];
- ArrayInit(temp,FALSE,64);   //set all to false
- ArrayInit(pixels,temp,100);
-
  //init sensors
  SetSensorType(OUT_B, SENSOR_TYPE_ROTATION); //Port B, x-axis
  SetSensorType(OUT_C, SENSOR_TYPE_ROTATION); //Port C, y-axis
  ClearSensor(OUT_B); ClearSensor(OUT_C);
 
- int x, y, i;
- 
- i = 0;
+ int x, y;
  
  while(TRUE)
   {
-   if(ButtonPressed(BTNCENTER,true)){
-    //openMenu();
-    //TextOut(0, LCD_LINE2, "Hello!",DRAW_OPT_NORMAL);
+   if(ButtonPressed(BTNCENTER,false)){
+    openMenu();
    }
 
    x=MotorTachoCount(OUT_B); // get line start
@@ -33,46 +43,63 @@ task main()
  
    x = x/10; y = y/-10;  //scale the input to screen
  
-   if(x>99) {x=99;} else if (x<0) x = 0;  //make sure to stay within
-   if(y>63) {y=63;} else if (y<0) y = 0;  //boundaries of the array
+   if(x>X-1) {x=X-1;} else if (x<0) x = 0;  //make sure to stay within
+   if(y>Y-1) {y=Y-1;} else if (y<0) y = 0;  //boundaries of the array
  
-   brush(x,y,0.5);  //draw the point, radius under 1 makes 1 pixel line
- 
-   //i++; //testing only
- 
-   //if (i>10000){
-    //restoreImage();
-    //TextOut(0, LCD_LINE4, "Image restored");
-    //i=0;
-    //Wait(1000);
-   //}
+   brush(x,y,1);  //draw the point, radius under 1 makes 1 pixel line
  }
 }
 
+
+
+//if possible, this should be in a separate file
 sub brush(int x, int y, int radius){
- pixels[x][y]=1; //for some reason, this assignment doesn't work
-                    //despite the corrected values
+ pixels[x][y]=true;
+ 
  TextOut(0, LCD_LINE1, "X=");  //debug info
  TextOut(0, LCD_LINE2, "Y=");
  NumOut(10, LCD_LINE1, x);
  NumOut(10, LCD_LINE2, y);
- CircleOut(x, y, radius, DRAW_OPT_NORMAL);
- if (pixels[x][y]==TRUE){
-   TextOut(0, LCD_LINE3, "true");
+ 
+ if (radius == 1){
+  PointOut(x, y);
  }
  else {
-   TextOut(0, LCD_LINE3, "false");
+  CircleOut(x, y, radius);
  }
 }
 
-//if possible, this should be in a separate file
 void openMenu()
 {
-  //create graphics
-  //handle menu navigation
-  //clear screen
-  //restore image data
+  ClearScreen();                        //clear screen to see menu
+  GraphicOutEx(0, 0, "menu.ric", menu); //open menu with def cursor position
+  navi();                               //handle menu navigation
+  restoreImage();                       //restore image data
 }
+
+sub navi(){
+ int pos = 0;
+ //do navigation while "exit" button isn't pressed
+ while(!ButtonPressed(BTNEXIT,true)){
+   if(ButtonPressed(BTNLEFT,true)){        //go back in menu
+     pos--;
+   }
+    else if(ButtonPressed(BTNRIGHT,true)){ //go forward in menu
+     pos++;
+   }
+
+   if(pos<0) { //make sure to stay within boundaries
+    pos = 0;
+   }
+    else if (pos>ArrayLen(item)-1){
+    pos=ArrayLen(item)-1;
+   }
+   
+   menu[0]=item[pos]; //update position
+   GraphicOutEx(0, 0, "menu.ric", menu); //update menu
+ }
+}
+
 
 //write image data to file
 sub saveImage(){}
@@ -82,20 +109,11 @@ sub restoreImage()
 //load image data from array
  ClearScreen();
  int i,j;
-    TextOut(0, LCD_LINE1, "X=");  //debug info
-    TextOut(0, LCD_LINE2, "Y=");
-    
- for(i = 0; i<100;i++){
-  for(j = 0; j<64;j++){
-    if(pixels[i][j]==TRUE){
-     PointOut(i,j,DRAW_OPT_NORMAL);
-      TextOut(10, LCD_LINE1, "true");  //debug info
-      TextOut(10, LCD_LINE2, "true");
-    } else {
-      TextOut(10, LCD_LINE1, "false");  //debug info
-      TextOut(10, LCD_LINE2, "false");
+ for(i = 0; i<X;i++){
+  for(j = 0; j<Y;j++){
+    if(pixels[i][j]==true){
+     PointOut(i,j);
     }
-   Wait(100);
   }
  }
 }
