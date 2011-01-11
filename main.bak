@@ -22,8 +22,10 @@ sub brush(int x, int y);
 sub setBrushSize();
 void markCircularArea(int xc, int yc);
 sub clearScreen();
+sub openImage();
 sub saveImage();
 sub restoreImage();
+sub displayMessage(string message, int delay);
 
 
 bool pixels[X][Y];     //bookkeeping of coloured pixels, init values all false
@@ -72,8 +74,9 @@ void openMenu()
   navi();                               //handle menu navigation
   ClearScreen();
   if (!clearFlag) {
-     restoreImage();    //restore image data
-     clearFlag = false;
+    restoreImage();    //restore image data
+    clearFlag = false;
+    TextOut(0, LCD_LINE1, "flag restored",DRAW_OPT_CLEAR);
   }
 }
 
@@ -117,13 +120,20 @@ Wait(200); //waiting time prevents interference
   case 0: //open
       break;
   case 1: //brush
-      drawSetting = true;
-      drawOption = DRAW_OPT_NORMAL;
+      //drawSetting = true;
+      //drawOption = DRAW_OPT_NORMAL;
       setBrushSize();
       break;
   case 2: //eraser, most likely not efficiently implementable
-      drawSetting = false;
-      drawOption = DRAW_OPT_INVERT;
+      if(drawSetting){
+       drawSetting = false;
+       drawOption = DRAW_OPT_INVERT;
+       displayMessage("Eraser: on",500);
+      }else{
+       drawSetting = true;
+       drawOption = DRAW_OPT_NORMAL;
+       displayMessage("Eraser: off",500);
+      }
       break;
   case 3: //clear
       clearScreen();
@@ -220,17 +230,13 @@ void markCircularArea(int xc, int yc){
 
 sub clearScreen(){
  clearFlag = true;
- ClearScreen();
- TextOut(0, LCD_LINE4, "Clearing image...");
+ displayMessage("Clearing screen",0);
  int j,k;
  for (j = 0; j < X; j++){
   for (k = 0; k < Y; k++){
    pixels[j][k] = false;
   }
  }
- ClearScreen();
- TextOut(0, LCD_LINE4, "Image erased.");
- Wait(200);
 }
 
 sub openImage(){}    //read image data from file
@@ -251,3 +257,8 @@ sub restoreImage()   //load image data from array
                    //it is not set in bookkeeping to prevent artifacts
 }
 
+sub displayMessage(string message, int delay){
+ClearScreen();
+TextOut(0, LCD_LINE4,message);
+Wait(delay);
+}
