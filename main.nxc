@@ -6,13 +6,12 @@
 #define MAX_BRUSH_SIZE (5) //just a random number
 
 //definition of menu cursor positions
-#define menu1 58
-#define menu2 49
-#define menu3 41
-#define menu4 33
-#define menu5 25
-#define menu6 17
-#define menu7 9
+#define menu1 57
+#define menu2 48
+#define menu3 40
+#define menu4 32
+#define menu5 24
+#define menu6 16
 
 
 //afterwards the functions should be arranged in the same order as here
@@ -23,12 +22,13 @@ sub brush(int x, int y);
 sub setBrushSize();
 void markCircularArea(int xc, int yc);
 sub clearScreen();
+sub openImage();
 sub saveImage();
 sub restoreImage();
 
 
 bool pixels[X][Y];     //bookkeeping of coloured pixels, init values all false
-int item[] = {menu1, menu2, menu3, menu4, menu5, menu6, menu7};
+int item[] = {menu1, menu2, menu3, menu4, menu5, menu6};
 int menu[] = {menu1};// menu cursor position, MUST be array, init value menu1
 
 bool clearFlag = false;     //exit screen without restoring image
@@ -129,12 +129,10 @@ Wait(200); //waiting time prevents interference
   case 3: //clear
       clearScreen();
       break;
-  case 4: //games
-      break;
-  case 5: //save
+  case 4: //save
       saveImage();
       break;
-  case 6: //close menu
+  case 5: //close menu
       return false;
   default:
       return true;
@@ -223,15 +221,20 @@ void markCircularArea(int xc, int yc){
 
 sub clearScreen(){
  clearFlag = true;
+ ClearScreen();
+ TextOut(0, LCD_LINE4, "Clearing image...");
  int j,k;
  for (j = 0; j < X; j++){
   for (k = 0; k < Y; k++){
    pixels[j][k] = false;
   }
  }
+ ClearScreen();
+ TextOut(0, LCD_LINE4, "Image erased.");
+ Wait(200);
 }
 
-
+sub openImage(){}    //read image data from file
 sub saveImage(){}    //write image data to file
 
 
