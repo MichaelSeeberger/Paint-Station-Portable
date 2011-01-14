@@ -1,0 +1,340 @@
+// Snake code taken from
+// http://www.cprogrammingreference.com/Tutorials/Games_Programming/Snake.php
+// and modified to run on NXT
+
+#define X 100
+#define Y 64
+
+//defines how much does the snake grow at once
+#define LEN_INC 2
+
+#define LEFT  1
+#define RIGHT 2
+#define UP    3
+#define DOWN  4
+
+int delay;
+int foodcount; //Keep Count of food
+int previous;  //previous random value
+bool counter = true;   //prevents directions from blocking each other
+
+int snake[X][Y]; //bookeeping of the field
+
+struct SnakeData{
+int length;
+int headx; // Stores Head X Coordinate
+int heady; // Stores Head Y Coordinate
+int headdir; // Stores Head Direction
+int tailx; // Stores Tail X Coordinat
+int taily; // Stores Tail Y Coordinat
+int taildir; // Stores Tail Direction
+int bendx[50]; //Stores X Bend Coordinate
+int bendy[50]; // Stores Y Bend Coordinate
+int benddir[50]; // Stores Bend direction when tail reaches that X Coordinate
+};
+SnakeData Snake;
+
+void initGame();
+void moveSnake();
+void userInput();
+int randomvalue (int starting, int ending);
+void gamePhysics();
+void addFood();
+
+
+void initGame(){
+ int i;
+ Snake.length = 5;
+ Snake.headx = X/2;
+ Snake.heady = Y/2;
+ Snake.headdir = LEFT;
+ Snake.tailx = Snake.headx - Snake.length;
+ Snake.taily = Snake.heady;
+ Snake.taildir = LEFT;
+
+ for (i = 0; i < 50;i++){ // There is no bend initally
+  Snake.bendx[i] = 0;
+  Snake.bendy[i] = 0;
+  Snake.benddir[i] = 0;
+ }
+
+ delay = 500;
+ //draw snake
+ for (i = Snake.length; i>0;i--){
+  PointOut(Snake.headx-i,Snake.heady,DRAW_OPT_NORMAL);
+  snake[Snake.headx-i][Snake.heady] = 1; //mark snake pixel
+ }
+}
+
+
+void moveSnake(){
+ //Move the Head
+ if (Snake.headdir == LEFT){
+   Snake.headx--;
+ }
+ if (Snake.headdir == RIGHT){
+   Snake.headx++;
+ }
+ if (Snake.headdir == UP){
+   Snake.heady++;
+ }
+ if (Snake.headdir == DOWN){
+   Snake.heady--;
+ }
+ PointOut(Snake.headx,Snake.heady,DRAW_OPT_NORMAL);
+ snake[Snake.headx][Snake.heady] = 1;
+  
+ //Move the Tail
+ PointOut(Snake.tailx, Snake.taily, DRAW_OPT_LOGICAL_AND); //clear tail pixel
+ snake[Snake.tailx][Snake.taily] = 0; //mark pixel as empty
+ 
+ if (Snake.taildir == LEFT){
+    Snake.tailx--;
+ }
+ if (Snake.taildir == RIGHT){
+   Snake.tailx++;
+ }
+ if (Snake.taildir == UP){
+    Snake.taily++;
+ }
+ if (Snake.taildir == DOWN){
+    Snake.taily--;
+ }
+}
+
+
+
+void userInput(){
+ int x, y;
+ int input = Snake.headdir;
+ int i = 0;
+ int j = 0;
+ if (i > 50) i = 0; // Makes the bend array a circular queue
+ if (j > 50) j = 0;
+ 
+ x = MotorTachoCount(OUT_C); //user input
+ int c;
+ if(x>0 || x<0){
+  c = x/abs(x);
+ }
+ if(ButtonPressed(BTNRIGHT,true)){ //turn snake clockwise
+  switch(Snake.headdir){
+  case LEFT:
+   Snake.headdir = UP;
+   TextOut(0, LCD_LINE2, "Up   ");
+   break;
+  case RIGHT:
+   Snake.headdir = DOWN;
+   TextOut(0, LCD_LINE2, "Down ");
+   break;
+  case UP:
+   Snake.headdir = RIGHT;
+   TextOut(0, LCD_LINE2, "right");
+   break;
+  case DOWN:
+   Snake.headdir = LEFT;
+   TextOut(0, LCD_LINE2, "Left ");
+   break;
+  default:
+   break;
+  }
+ }else if(ButtonPressed(BTNLEFT,true)){ //turn snake counter clockwise
+  switch(Snake.headdir){
+  case LEFT:
+   Snake.headdir = DOWN;
+   TextOut(0, LCD_LINE2, "Down ");
+   break;
+  case RIGHT:
+   Snake.headdir = UP;
+   TextOut(0, LCD_LINE2, "Up   ");
+   break;
+  case UP:
+   Snake.headdir = LEFT;
+   TextOut(0, LCD_LINE2, "Left ");
+   break;
+  case DOWN:
+   Snake.headdir = RIGHT;
+   TextOut(0, LCD_LINE2, "Right");
+   break;
+  default:
+   break;
+ }
+}
+
+ //Change head direction based on logic
+ if (input == LEFT && Snake.headdir != RIGHT && Snake.headdir != LEFT)
+ {
+  Snake.headdir = LEFT;
+  Snake.bendx [i] = Snake.headx;
+  Snake.bendy [i] = Snake.heady;
+  Snake.benddir [i] = LEFT;
+  i++;
+ }
+
+ if (input == RIGHT && Snake.headdir != LEFT && Snake.headdir != RIGHT)
+ {
+  Snake.headdir = RIGHT;
+  Snake.bendx [i] = Snake.headx;
+  Snake.bendy [i] = Snake.heady;
+  Snake.benddir [i] = RIGHT;
+  i++;
+ }
+ if (input == UP && Snake.headdir != DOWN && Snake.headdir != UP)
+ {
+  Snake.headdir = UP;
+  Snake.bendx [i] = Snake.headx;
+  Snake.bendy [i] = Snake.heady;
+  Snake.benddir [i] = UP;
+  i++;
+ }
+ if (input == DOWN && Snake.headdir != UP && Snake.headdir != DOWN)
+ {
+  Snake.headdir = DOWN;
+  Snake.bendx [i] = Snake.headx;
+  Snake.bendy [i] = Snake.heady;
+  Snake.benddir [i] = DOWN;
+  i++;
+ }
+
+//--some error here
+ //Code to change the y direction at respective time
+// if (Snake.tailx == Snake.bendx [j] && Snake.taily == Snake.bendy [j])
+// {
+//  Snake.taildir = Snake.benddir [j];
+//  j++;
+//  TextOut(0, LCD_LINE3, "Tail bent", DRAW_OPT_CLEAR);
+//  Wait(1000);
+// }
+
+}
+
+
+
+
+int randomvalue (int starting, int ending)
+// Return a random int value between end and starting parameters
+{
+ int answer;
+ if (previous <0)
+  previous = 0;
+ int difference = starting - ending;
+ for (int i = 0; i <previous;i++) Random();
+ answer = (Random() % difference);
+ previous++;
+ return answer;
+}
+
+
+
+void addFood(){
+ int valid = 0;
+ int foodx, foody;
+ while (!valid){
+  foodx = randomvalue(0,X-1);
+  foody = randomvalue(0,Y-1);
+  if(snake[foodx][foody]==0){   //Check if the space isnt occupied by snake
+   PointOut(foodx,foody);
+   snake[foodx][foody]=2;       //2 denotes food
+   foodcount++;
+   valid = 1;
+  }
+ }
+}
+
+
+void gamePhysics(){
+ int futurex, futurey, futurepixel;
+ int i;
+
+ //Adds a food if no food is present and upto maximum 50 food
+ if (foodcount < 50){
+    addFood();
+ }
+
+//Boundary Collision Check
+ if (Snake.headx <= 0)   Snake.headx = X-1;
+ if (Snake.headx >= X-1) Snake.headx = 0;
+ if (Snake.heady <= 0)   Snake.heady = Y-1;
+ if (Snake.heady >= Y-1) Snake.heady = 0;
+
+//Get future value of head in int variable futurex and futurey and calculate the logic
+
+ futurex = Snake.headx;
+ futurey = Snake.heady;
+ if (Snake.headdir == LEFT){
+  futurex--;
+ }
+ if (Snake.headdir == RIGHT){
+  futurex++;
+ }
+ if (Snake.headdir == UP){
+  futurey--;
+ }
+ if (Snake.headdir == DOWN){
+  futurey++;
+ }
+ futurepixel = snake[futurex][futurey];
+ if (futurepixel == 2){                      //Food Eaten
+  foodcount --;                              //Reduce count
+  PointOut(futurex,futurex,DRAW_OPT_INVERT); //remove the pixel
+  snake[futurex][futurey]=0;
+  
+  //Increase the size of snake by LEN_INC pixel
+  if (Snake.taildir == UP){
+   for (i = 0; i<LEN_INC+1;i++){
+    PointOut(Snake.tailx,Snake.taily+i,DRAW_OPT_NORMAL);
+    snake[Snake.tailx][Snake.taily+i]=1;
+   }
+   Snake.taily +=LEN_INC;
+  }
+  if (Snake.taildir == DOWN){
+   for (i = 0; i<LEN_INC+1;i++){
+     PointOut(Snake.tailx,Snake.taily-i,DRAW_OPT_NORMAL);
+     snake[Snake.tailx][Snake.taily-i]=1;
+   }
+   Snake.taily -=LEN_INC;
+  }
+  if (Snake.taildir == LEFT){
+   for (i = 0; i<LEN_INC+1;i++){
+    PointOut(Snake.tailx+i,Snake.taily,DRAW_OPT_NORMAL);
+    snake[Snake.tailx+i][Snake.taily]=1;
+   }
+   Snake.tailx +=LEN_INC;
+  }
+  if (Snake.taildir == RIGHT){
+   for (i = 0; i<LEN_INC+1;i++){
+    PointOut(Snake.tailx-i,Snake.taily,DRAW_OPT_NORMAL);
+    snake[Snake.tailx-i][Snake.taily]=1;
+   }
+   Snake.tailx -=LEN_INC;
+  }
+ }
+ if (futurepixel == 1) //collision with itself
+ {
+  TextOut(0, LCD_LINE4, "Game Over", DRAW_OPT_NORMAL);
+  Wait(3000);
+  Off(OUT_BC);
+ }
+}
+
+
+task main(){
+ //init sensors
+ SetSensorType(OUT_B, SENSOR_TYPE_ROTATION); //Port B, x-axis
+ SetSensorType(OUT_C, SENSOR_TYPE_ROTATION); //Port C, y-axis
+ ClearSensor(OUT_B);
+ ClearSensor(OUT_C);
+ 
+ initGame();
+ while(true){
+ TextOut(0, LCD_LINE1, "Head: ", DRAW_OPT_NORMAL);
+ NumOut(20, LCD_LINE1, Snake.headdir, DRAW_OPT_NORMAL);
+ TextOut(0, LCD_LINE2, "Tail: ",DRAW_OPT_NORMAL);
+ NumOut(20, LCD_LINE2, Snake.taildir, DRAW_OPT_NORMAL);
+ 
+//   gamePhysics();
+   userInput();
+//   moveSnake();
+   Wait(delay);
+ }
+}
